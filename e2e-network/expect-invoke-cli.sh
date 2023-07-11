@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+source "$FABLO_NETWORK_ROOT/fabric-docker/chaincode-scripts.sh"
+
 cli="$1"
 peer="$2"
 channel="$3"
@@ -10,8 +13,8 @@ transient_default="{}"
 transient="${7:-$transient_default}"
 
 if [ -z "$expected" ]; then
-  echo "Usage: ./expect-invoke.sh [cli] [peer:port[,peer:port]] [channel] [chaincode] [command] [expected_substring] [transient_data]"
-  exit 1
+   echo "Usage: ./expect-invoke.sh [cli] [peer:port[,peer:port]] [channel] [chaincode] [command] [expected_substring] [transient_data]"
+   exit 1
 fi
 
 label="Invoke $channel/$cli/$peer $command"
@@ -20,17 +23,9 @@ echo "➜ testing: $label"
 
 peerAddresses="--peerAddresses $(echo "$peer" | sed 's/,/ --peerAddresses /g')"
 
+#call invoke function from chaincode-scripts.sh
 response="$(
-  # shellcheck disable=SC2086
-  docker exec "$cli" peer chaincode invoke \
-    $peerAddresses \
-    -C "$channel" \
-    -n "$chaincode" \
-    -c "$command" \
-    --transient "$transient" \
-    --waitForEvent \
-    --waitForEventTimeout 90s \
-    2>&1
+    chaincodeInvoke "$channel" "$chaincode" "$peerAddresses" "$command" "$transient"
 )"
 
 echo "$response"
@@ -41,3 +36,4 @@ else
   echo "❌ failed (cli): $label | expected: $expected"
   exit 1
 fi
+
