@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+source "$FABLO_NETWORK_ROOT/fabric-docker/chaincode-scripts.sh"
+
 cli="$1"
 peer="$2"
 channel="$3"
@@ -20,17 +23,9 @@ echo "➜ testing: $label"
 
 peerAddresses="--peerAddresses $(echo "$peer" | sed 's/,/ --peerAddresses /g')"
 
+
 response="$(
-  # shellcheck disable=SC2086
-  docker exec "$cli" peer chaincode invoke \
-    $peerAddresses \
-    -C "$channel" \
-    -n "$chaincode" \
-    -c "$command" \
-    --transient "$transient" \
-    --waitForEvent \
-    --waitForEventTimeout 90s \
-    2>&1
+   "$FABLO_HOME/fablo.sh" chaincode invoke "$channel" "$chaincode" "$peers" "$command" "$transient"
 )"
 
 echo "$response"
